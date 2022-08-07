@@ -3,7 +3,7 @@ import numpy as np
 
 REPEAT_NUM = 10
 
-def get_center_of_red_circle():
+def get_center_of_green_circle():
 
     cap = cv2.VideoCapture(0)
 
@@ -17,19 +17,19 @@ def get_center_of_red_circle():
         while True:
             ret, frame = cap.read()
             frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            #빨간색 부분 : 1 / 나머지 부분 : 0 으로 변환
-            red_area =  cv2.inRange(frame_hsv, (-5,100,100), (5, 255, 255))
+            #초록색(H 147 , S 100, V 69) 부분 : 1 / 나머지 부분 : 0 으로 변환
+            green_area =  cv2.inRange(frame_hsv, (140,100,100), (155, 255, 255))
             #noise 제거
-            unnoise_red = cv2.GaussianBlur(red_area, (0,0), 1.0)
+            unnoise_green = cv2.GaussianBlur(green_area, (0,0), 1.0)
 
             min_rad = 10 #0으로 두면 사용하지 않음
             max_rad = 45
             threshold = 30 #작으면 오류가 높음, 크면 검출률이 떨어짐
             
-            circles = cv2.HoughCircles(unnoise_red, cv2.HOUGH_GRADIENT, 1, 20, param1=120, param2=threshold, 
+            circles = cv2.HoughCircles(unnoise_green, cv2.HOUGH_GRADIENT, 1, 20, param1=120, param2=threshold, 
                                         minRadius=min_rad, maxRadius=max_rad)
 
-            circled_red_copy = unnoise_red.copy() #원을 그릴 도화지
+            circled_green_copy = unnoise_green.copy() #원을 그릴 도화지
             if circles is not None:
 
                 cx, cy, radius = circles[0][0] #원의 정보 저장(중심점 좌표, 반지름)(하나만 가져감)
@@ -48,7 +48,7 @@ def get_center_of_red_circle():
                 break
             
             if ret :
-                cv2.imshow('camera', circled_red_copy)
+                cv2.imshow('camera', circled_green_copy)
                 if cv2.waitKey(1) != -1:
                     break
             else :
@@ -68,7 +68,7 @@ def get_pos():
     while(1):
         success_idx = 0
 
-        result_x, result_y, result_radii = get_center_of_red_circle()
+        result_x, result_y, result_radii = get_center_of_green_circle()
         aver_x = np.mean(result_x)
         aver_y = np.mean(result_y)
         aver_radii = np.mean(result_radii)
