@@ -236,7 +236,7 @@ def main():
             rb.move(pos_pipet_handle.offset(dx=near_handle_offset))
             rb.line(pos_pipet_handle)
             rb.line(pos_pipet_handle.offset(dz = 20))
-            rb.line(pos_pipet_handle.offset(dy = 30))
+            rb.line(pos_pipet_handle.offset(dy = 30, dz = 20))
             rb.move(pipet_posture)
 
             print('----- tip -----')
@@ -301,6 +301,11 @@ def main():
             print('----- release pipet ------')
 
             rb.move(pipet_posture)
+            
+            rb.line(pos_pipet_handle.offset(dy=30, dz=20))
+            rb.line(pos_pipet_handle)
+            rb.line(pos_pipet_handle.offset(dz=20))
+            
 
             rb.line(pos_pipet_handle.offset(dy = 10))
             rb.line(pos_pipet_handle.offset(dz = 10))
