@@ -20,27 +20,23 @@ def main():
     rb.open()
     IOinit(rb)
 
-    m_basic = MotionParam( lin_speed = 60, jnt_speed = 20 )
+    m_basic = MotionParam( lin_speed = 50, jnt_speed = 12 )
     rb.motionparam(m_basic)
 
     pos_centri = data.get_position("pos6", 0)
-    pos_suction = data.get_position("pos6", 1)
-    pos_worktable= data.get_position("pos6", 2)
+    pos_pipet_thin_origin = data.get_position("pos6", 1)
+    pos_pipet_thin = pos_pipet_thin_origin.offset(dx = 120)
+
+    pos_tip_remove= data.get_position("pos6", 2)
     pos_plate_sol = data.get_position("pos6", 3)
-    pos_pipette = data.get_position("pos6", 4)
+    pos_pipet_thick = data.get_position("pos6", 4)
     pos_micro = data.get_position("pos6", 5)
     pos_incub = data.get_position("pos6", 6)
 
-    off_data = {'there':[0, 0, 0], 'closed_incub_door':[0,-10,-10], 'incub_plate_1':[20,-20,-10],'incub_plate_2':[-20,-20,-10],
-                'on_micro': [10, 0, -20], 'on_plate_sol_1' : [-100, 50, -20], 'to_PBS' : [-30, 10, 0], 'pipet_handle_1':[10,10,-10],
-                'pipet_tip' : [10,-10,-10], 'del_tip' : [10, -30, 0], 'to_trypsin' : [0, 10, 0], 'to_conical' :[-10, 10, 0],
-                'to_medium': [-20, 10, 0], 'on_plate_sol_2': [20, 0, -20], 'on_plate_sol_3': [60, 0, -20], 'pipet_handle_2':[30,10,-10]}
+    off_data = {'there':[0, 0, 0], 'pipet_thin_handle':[-92.76, -12.26, -56.6], 'pipet_thick_handle':[0, 0, 0], 'pipet_thin_tip':[-22.7, -279.11, -24.78], 'pipet_thick_tip':[0, 0, 0], 'del_tip':[0, 0, 0]}
 
-    posture = {'centri_ver' : [-145, -90, -145], 'centri_hor' :[145, 0, -90], 'suction_ver':[110,-90,-110], 'suction_hor':[90, 0, -90],
-                'work_ver' : [-150, -90, 110], 'work_hor' : [45, 0, -90], 'plate_ver' : [0, -90, -90], 'plate_hor' : [0, 0, -90],
-                'pipet_ver' : [35, -90, -165], 'pipet_hor' : [-40, 0, -90], 'micro_ver' : [90, -90, 90], 'micro_hor' : [-90, 0, -90],
-                'incub_ver' : [-70, -90, -155], 'incub_hor' : [-135, 0, -90], 'plate_cap_grip' : [90, 0, -180], 'order' : ['rz', 'ry', 'rx'],
-                'incub_grip' : [0, 0, 0]}
+    posture = {'incub_ver':[-180, 90, -120], 'micro_ver' : [-56, 90, -56], 'micro_hor':[90, 0, 90], 'plate_sol_ver':[-90, 90, 180], 'plate_sol_hor':[180, 0, 90],
+                'tip_remove_ver':[-74, 90, 146], 'pipet_thin_ver':[-18, 90, 162], 'pipet_thin_hor':[-85, 0 , 90], 'front_top':[180, 0, 180], 'back_top':[0,0,180]}
 
     grip_code = {'basic_grip' : '111', 'basic_release' : '000', 'pipet_half_grip':'001',
                     'pipet_release' : '010', 'pipet_hold' : '100'}
@@ -98,7 +94,6 @@ def main():
             print('close the gripper')
             rb.line(pos_precise.offset(dx = 20))
             rb.line(pos_precise.offset(dx = -50))
-
 
     def incubator_motion(mode, radii) :
 
@@ -219,35 +214,55 @@ def main():
         rb.home()
 
     def pipette_motion(pos_fluid, off_fluid, pos_goal, off_goal, pipet_type, init_or_not, mid_or_not, fin_or_not):
-        pipet_posture = posture_change(pos_pipette, 'pipet_ver', 0)
-        pos_pipet_handle = offset_position(pipet_posture, 'pipet_handle_1', 0)
-        if pipet_type == '1000ml':
-            pos_pipet_handle = offset_position(pipet_posture, 'pipet_handle_2', 0)
-        
+
+        if pipet_type == 'thin':
+            pipet_posture = pos_pipet_thin_ver.copy()
+            pos_pipet_handle = offset_position(pipet_posture, 'pipet_thin_handle', 0)
+            near_handle_offset = 50
+            pos_pipet_tip = offset_position(pipet_posture, 'pipet_thin_tip', 0)
+        elif pipet_type == 'thick':
+            pipet_posture = pos_pipet_thick_ver.copy()
+            pos_pipet_handle = offset_position(pipet_posture, 'pipet_thick_handle', 0)
+            near_handle_offset = -50
+            pos_pipet_tip = offset_position(pipet_posture, 'pipet_thick_tip', 0)
+        else:
+           print('type error')
+
+
         if init_or_not == 1 :
             print('----- get the pipet -----')
 
             rb.move(pipet_posture)
-            rb.move(pos_pipet_handle.offset(dx=-5))
+            rb.move(pos_pipet_handle.offset(dx=near_handle_offset))
             rb.line(pos_pipet_handle)
-            rb.line(pos_pipet_handle.offset(dz = 10))
+            rb.line(pos_pipet_handle.offset(dz = 20))
+            rb.line(pos_pipet_handle.offset(dy = 30))
+            rb.move(pipet_posture)
 
             print('----- tip -----')
-            pos_pipet_tip = offset_position(pipet_posture, 'pipet_tip', 1)
-            off_data['pipet_tip'][0] += 30
-            rb.line(pos_pipet_tip.offset(dz = -10))
+
+            rb.move(pos_pipet_tip.offset(dz = 120))
             rb.line(pos_pipet_tip)
-        if mid_or_not == 1:
+            rb.line(pos_pipet_tip.offset(dz = 120))
             rb.move(pipet_posture)
+
+            if pipet_type == 'thin':
+                off_data['pipet_thin_tip'][1] -= 9
+            elif pipet_type == 'thick':
+                off_data['pipet_thick_tip'][1] -= 18
+
+        if mid_or_not == 1:
             
+            print('----- half grip pipet -----')
             dout(16, grip_code['pipet_half_grip'])
             rb.sleep(1)
 
             print('----- suck up the fluid -----')
-            if pos_fluid == pos_plate_sol :
-                second_posture = posture_change(pos_fluid,'plate_ver',1)
-            elif pos_fluid == pos_worktable :
-                second_posture = posture_change(pos_fluid, 'work_ver',1)
+            if pos_fluid == pos_plate_sol:
+                second_posture = posture_change(pos_plate_sol, 'plate_sol_ver',1)
+            elif pos_fluid == pos_pipet_thick:
+                second_posture = posture_change(pos_pipet_thick, 'micro_ver',1)
+                
             above_fluid = offset_position(second_posture, off_fluid, 1)
             rb.line(above_fluid.offset(dz = -5))
 
@@ -258,10 +273,12 @@ def main():
             rb.move(second_posture)
 
             print('----- release fluid -----')
-            if pos_goal == pos_plate_sol : 
-                third_posture = posture_change(pos_goal, 'plate_ver', 1)
-            elif pos_goal == pos_worktable :
-                third_posture = posture_change(pos_goal, 'plate_ver', 1)
+
+            if pos_goal == pos_plate_sol:
+                third_posture = posture_change(pos_plate_sol, 'plate_sol_ver',1)
+            elif pos_goal == pos_pipet_thick:
+                third_posture = posture_change(pos_pipet_thick, 'micro_ver',1)
+            
             above_goal = offset_position(third_posture, off_goal, 1)
             rb.line(above_goal.offset(dz=-5))
 
@@ -275,18 +292,22 @@ def main():
 
             print('----- remove tip -----')
 
-            four_posture = posture_change(pos_worktable, 'work_ver', 1)
-            pos_del_tip = offset_position(four_posture, 'del_tip', 1)
-            rb.line(pos_del_tip.offset(dz = 20))
+            four_posture = pos_tip_remove_ver.copy()
+            pos_del_tip = offset_position(four_posture, 'del_tip', 0)
+            rb.line(pos_del_tip.offset(dz = -20))
             rb.line(pos_del_tip)
-            rb.move(pipet_posture)
+            rb.line(pos_del_tip.offset(dz = -20))
 
             print('----- release pipet ------')
-            rb.move(pos_pipet_handle.offset(dz=20))
-            rb.line(pos_pipet_handle)
-            rb.line(pos_pipet_handle.offset(dx=-10))
 
-            rb.move(pos_pipette)
+            rb.move(pipet_posture)
+
+            rb.line(pos_pipet_handle.offset(dy = 10))
+            rb.line(pos_pipet_handle.offset(dz = 10))
+            rb.line(pos_pipet_handle)
+            rb.move(pos_pipet_handle.offset(dx=near_handle_offset))
+
+            rb.move(pipet_posture)
 
     def pipette_mix(mix_base, offset_name, repeat, amplitude):
         pos_mix_1 = offset_position(mix_base, offset_name, 0)
@@ -337,9 +358,26 @@ def main():
 
     pos_incub_ver = posture_change(pos_incub,'incub_ver', 0)
     pos_micro_ver = posture_change(pos_micro, 'micro_ver', 0)
-    pos_plate_sol_ver = posture_change(pos_plate_sol, 'plate_ver',0)
+    pos_micro_hor = posture_change(pos_micro, 'micro_hor', 0)
+    pos_pipet_thick_ver = posture_change(pos_pipet_thick, 'micro_ver', 0)
+    pos_plate_sol_ver = posture_change(pos_plate_sol, 'plate_sol_ver', 0)
+    pos_plate_sol_hor = posture_change(pos_plate_sol, 'plate_sol_hor', 0)
+    pos_tip_remove_ver = posture_change(pos_tip_remove, 'tip_remove_ver', 0)
+    pos_pipet_thin_ver = posture_change(pos_pipet_thin, 'pipet_thin_ver', 0)
+    pos_pipet_thin_hor = posture_change(pos_pipet_thin, 'pipet_thin_hor', 0)
+
+    pos_test_incub = posture_change(pos_incub, 'front_top',0)
+    pos_test_micro = posture_change(pos_micro, 'front_top',0)
+    pos_test_pipet_thick = posture_change(pos_pipet_thick, 'front_top',0)
+    pos_test_plate_sol = posture_change(pos_pipet_thin, 'front_top',0)
+    pos_test_tip_remove = posture_change(pos_tip_remove, 'front_top',0)
+    pos_test_pipet_thin = posture_change(pos_pipet_thin, 'front_top',0)
+    pos_test_centri = posture_change(pos_centri, 'front_top',0)
 
     rb.home()
+
+    pipette_motion(pos_plate_sol, 'there', pos_plate_sol, 'there', 'thin',1,0,0)
+    pipette_motion(pos_plate_sol, 'there', pos_plate_sol, 'there', 'thin',1,0,1)
 
     rb.close()
 
