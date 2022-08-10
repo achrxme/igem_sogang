@@ -28,18 +28,22 @@ def main():
     pos_pipet_thin = pos_pipet_thin_origin.offset(dx = 120)
 
     pos_tip_remove= data.get_position("pos6", 2)
-    pos_plate_sol = data.get_position("pos6", 3)
+    pos_plate_sol_origin = data.get_position("pos6", 3)
+    pos_plate_sol =  pos_plate_sol_origin.offset(dy = -100)
+
     pos_pipet_thick = data.get_position("pos6", 4)
     pos_micro = data.get_position("pos6", 5)
     pos_incub = data.get_position("pos6", 6)
 
-    off_data = {'there':[0, 0, 0], 'pipet_thin_handle':[-92.76, -12.26, -56.6], 'pipet_thick_handle':[0, 0, 0], 'pipet_thin_tip':[-22.7, -279.11, -24.78], 'pipet_thick_tip':[0, 0, 0], 'del_tip':[0, 0, 0]}
+    off_data = {'there':[0, 0, 0], 'pipet_thin_handle':[-92.76, -12.26, -57.6], 'pipet_thick_handle':[90, 20, -40], 'pipet_thin_tip':[-22.7, -280.11, -24.78], 'pipet_thick_tip':[22, -280, -20], 'del_tip':[-50, -50, 100],
+                'above_plate_1' : [200, 70, -50], 'above_plate_2' : [230, 100, -50], 'above_plate_3' : [260, 100, -50], 'above_PBS' : [0, 0, 0], 'above_conical' : [0, 0, 0], 'above_trypsin' : [0, 0, 0], 'above_conical' : [0, 0, 0],
+                'grip_plate_1' : [0, 0, 0], 'grip_plate_2' : [0, 0, 0], 'grip_plate_3' : [0, 0, 0],
+                'incub_handle': [0, 0, 0]}
 
     posture = {'incub_ver':[-180, 90, -120], 'micro_ver' : [-56, 90, -56], 'micro_hor':[90, 0, 90], 'plate_sol_ver':[-90, 90, 180], 'plate_sol_hor':[180, 0, 90],
                 'tip_remove_ver':[-74, 90, 146], 'pipet_thin_ver':[-18, 90, 162], 'pipet_thin_hor':[-85, 0 , 90], 'front_top':[180, 0, 180], 'back_top':[0,0,180]}
 
-    grip_code = {'basic_grip' : '111', 'basic_release' : '000', 'pipet_half_grip':'001',
-                    'pipet_release' : '010', 'pipet_hold' : '100'}
+    grip_code = {'basic_grip' : '111', 'basic_release' : '000', 'pipet_half_grip':'001', 'pipet_release' : '010', 'pipet_hold' : '100'}
     grip_test_code = {'success' : '1', 'fail' : '0'}
 
     def posture_change(pos_origin, new_posture_name, move_or_not) :
@@ -58,7 +62,10 @@ def main():
         return new_position
     
     def grip(mode, pos_align, offset_name, return_or_not, test_or_not, special) :
+        
+        test_hight = 50
         pos_precise = offset_position(pos_align,offset_name,0)
+
         while(1) :
             rb.move(pos_precise)
             
@@ -73,17 +80,24 @@ def main():
             if test_or_not == 0 : break
             else :
                 rb.move(pos_align)
+
                 test_result = din(0)
-                rb.sleep(0.5)
+                rb.sleep(1)
+
                 if test_result == grip_test_code['success'] : break
                 elif test_result == grip_test_code['fail'] :
 
                     print('Ops! gripper misses target !')
 
+                    pos_test = pos_precise.offset(dz = test_hight)
+
+                    posture_change(pos_test, 'front_top', 1)
+
                     pre_dx, pre_dy = client.order_classify('get_pos')
 
                     pos_precise = pos_precise.offset(dx=pre_dx, dy=pre_dy)
                     rb.move(pos_align)
+
                 else : print('ERROR !')
 
         if return_or_not == 1:
@@ -97,9 +111,9 @@ def main():
 
     def incubator_motion(mode, radii) :
 
-        new_incub = posture_change(pos_incub,'incub_grip',1)
+        incub_handle_posture = posture_change(pos_incub,'back_top',1)
 
-        pos_closed_door = offset_position(new_incub, 'closed_incub_door',0)
+        pos_closed_door = offset_position(incub_handle_posture, 'incub_handle',0)
         pos_opened_door = pos_closed_door.offset(dx = -radii*1.4142)
 
         if mode == 'open' :
@@ -120,21 +134,24 @@ def main():
 
     def plate_open(mode, pos_align, offset_name) :
 
-        rb.move(pos_align)
-        target_positon = offset_position(pos_align,offset_name,0)
+        plate_open_posture = posture_change(pos_align, 'front_top', 1)
+
+        target_positon = offset_position(plate_open_posture, offset_name, 0)
         if pos_align == pos_plate_sol:
-            plate_cap_position = target_positon.offset(dy=-200)
+            plate_cap_position = target_positon.offset(dy=-200, dz = -50)
         elif pos_align == pos_micro:
-            plate_cap_position = target_positon.offset(dx=-200)
+            plate_cap_position = target_positon.offset(dx=-200, dz = -50)
         else:
             print('sorry, that position is not defined')
+        
 
         if mode == 'open' :
-            grip('grip', pos_align, offset_name, 1, 1, 0)
+
+            grip('grip', plate_open_posture, offset_name, 1, 1, 0)
             grip('release', plate_cap_position, 'there', 1, 0, 0)
         elif mode == 'close' :
             grip('grip', plate_cap_position, 'there', 1, 1, 0)
-            grip('release', pos_align,offset_name,1,0,0)
+            grip('release', plate_open_posture,offset_name,1,0,0)
         else :
             print('ERROR !')
         
@@ -144,28 +161,28 @@ def main():
         rb.home()
 
         print('posture change')
-        new_posture = posture_change(pos_plate_sol, 'plate_cap_grip', 0)
+        new_posture = posture_change(pos_plate_sol, 'front_top', 0)
 
         if solution_name == 'PBS':
             print('PBS mode')
-            pos_solution = offset_position(new_posture, 'to_PBS', 0)
-            pos_cap = pos_solution.offset(dy=-20, dz=-20)
+            pos_solution = offset_position(new_posture, 'above_PBS', 0)
+            pos_cap = pos_solution.offset(dy=-50, dz=-50)
             repeat_time = 2
         elif solution_name == 'TRYPSIN':
             print('trypsin mode')
-            pos_solution = offset_position(new_posture, 'to_trypsin',0)
-            pos_cap = pos_solution.offset(dy=-20, dz=-10)
-            repeat_time = 1
+            pos_solution = offset_position(new_posture, 'above_trypsin',0)
+            pos_cap = pos_solution.offset(dy=-50, dz=-50)
+            repeat_time = 2
         elif solution_name == 'CONICAL':
             print('conical tube mode')
-            pos_solution = offset_position(new_posture, 'to_conical', 0)
-            pos_cap = pos_solution.offset(dy=-20, dz=-15)
-            repeat_time = 1
+            pos_solution = offset_position(new_posture, 'above_conical', 0)
+            pos_cap = pos_solution.offset(dy=-50, dz=-50)
+            repeat_time = 2
         elif solution_name == 'MEDIUM':
             print('medium mode')
-            pos_solution = offset_position(new_posture, 'to_medium', 0)
-            pos_cap = pos_solution.offset(dy=-20, dz=-15)
-            repeat_time = 1
+            pos_solution = offset_position(new_posture, 'above_medium', 0)
+            pos_cap = pos_solution.offset(dy=-50, dz=-50)
+            repeat_time = 2
 
         joint_solution = rb.Position2Joint(pos_solution)
 
@@ -232,6 +249,9 @@ def main():
         if init_or_not == 1 :
             print('----- get the pipet -----')
 
+            dout(16, grip_code['pipet_release'])
+            rb.sleep(1)
+
             rb.move(pipet_posture)
             rb.move(pos_pipet_handle.offset(dx=near_handle_offset))
             rb.line(pos_pipet_handle)
@@ -264,12 +284,12 @@ def main():
                 second_posture = posture_change(pos_pipet_thick, 'micro_ver',1)
                 
             above_fluid = offset_position(second_posture, off_fluid, 1)
-            rb.line(above_fluid.offset(dz = -5))
+            rb.line(above_fluid.offset(dz = -30))
 
             dout(16, grip_code['pipet_release'])
             rb.sleep(1)
 
-            rb.line(above_fluid.offset(dz = 20))
+            rb.line(above_fluid)
             rb.move(second_posture)
 
             print('----- release fluid -----')
@@ -280,12 +300,12 @@ def main():
                 third_posture = posture_change(pos_pipet_thick, 'micro_ver',1)
             
             above_goal = offset_position(third_posture, off_goal, 1)
-            rb.line(above_goal.offset(dz=-5))
+            rb.line(above_goal.offset(dz=-50))
 
             dout(16, grip_code['pipet_hold'])
             rb.sleep(1)
 
-            rb.line(above_goal.offset(dz= 20))
+            rb.line(above_goal)
             rb.move(third_posture)
 
         if fin_or_not == 1 :
@@ -294,21 +314,21 @@ def main():
 
             four_posture = pos_tip_remove_ver.copy()
             pos_del_tip = offset_position(four_posture, 'del_tip', 0)
-            rb.line(pos_del_tip.offset(dz = -20))
+
+            rb.line(pos_del_tip.offset(dz = -40))
+
+            dout(16, grip_code['pipet_release'])
+            rb.sleep(1)
+
             rb.line(pos_del_tip)
-            rb.line(pos_del_tip.offset(dz = -20))
+            rb.line(pos_del_tip.offset(dz = -40))
 
             print('----- release pipet ------')
 
             rb.move(pipet_posture)
-            
-            rb.line(pos_pipet_handle.offset(dy=30, dz=20))
-            rb.line(pos_pipet_handle)
-            rb.line(pos_pipet_handle.offset(dz=20))
-            
 
-            rb.line(pos_pipet_handle.offset(dy = 10))
-            rb.line(pos_pipet_handle.offset(dz = 10))
+            rb.line(pos_pipet_handle.offset(dy = 30, dz = 20))
+            rb.line(pos_pipet_handle.offset(dz = 20))
             rb.line(pos_pipet_handle)
             rb.move(pos_pipet_handle.offset(dx=near_handle_offset))
 
@@ -357,9 +377,9 @@ def main():
 
     def suction():
         print('----suction motion----')
-        rb.move(pos_suction)
+        rb.move(pos_pipet_thin)
         rb.move(pos_plate_sol)
-        rb.move(pos_suction)
+        rb.move(pos_pipet_thin)
 
     pos_incub_ver = posture_change(pos_incub,'incub_ver', 0)
     pos_micro_ver = posture_change(pos_micro, 'micro_ver', 0)
@@ -379,10 +399,9 @@ def main():
     pos_test_pipet_thin = posture_change(pos_pipet_thin, 'front_top',0)
     pos_test_centri = posture_change(pos_centri, 'front_top',0)
 
-    rb.home()
+    grip('grip', pos_pipet_thin_hor, 'del_tip', 1, 1, 0)
+    
 
-    pipette_motion(pos_plate_sol, 'there', pos_plate_sol, 'there', 'thin',1,0,0)
-    pipette_motion(pos_plate_sol, 'there', pos_plate_sol, 'there', 'thin',1,0,1)
 
     rb.close()
 

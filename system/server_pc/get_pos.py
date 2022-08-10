@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-REPEAT_NUM = 10
+REPEAT_NUM = 20
 
 def get_center_of_red_circle():
 
@@ -18,13 +18,15 @@ def get_center_of_red_circle():
             ret, frame = cap.read()
             frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
            
-            red_area =  cv2.inRange(frame_hsv, (-20,100,100), (10, 255, 255))
+            red_area =  cv2.inRange(frame_hsv, (-30,75,75), (30, 255, 255))
+            #red_area =  cv2.inRange(frame_hsv, (110,100,100), (130, 255, 255))
+
             #noise 제거
             unnoise_red = cv2.GaussianBlur(red_area, (0,0), 1.0)
 
-            min_rad = 0 #0으로 두면 사용하지 않음
+            min_rad = 2 #0으로 두면 사용하지 않음
             max_rad = 50
-            threshold = 20 #작으면 오류가 높음, 크면 검출률이 떨어짐
+            threshold = 15 #작으면 오류가 높음, 크면 검출률이 떨어짐
             
             circles = cv2.HoughCircles(unnoise_red, cv2.HOUGH_GRADIENT, 1, 20, param1=120, param2=threshold, 
                                         minRadius=min_rad, maxRadius=max_rad)
@@ -33,7 +35,7 @@ def get_center_of_red_circle():
             if circles is not None:
 
                 cx, cy, radius = circles[0][0] #원의 정보 저장(중심점 좌표, 반지름)(하나만 가져감)
-                print(cx, cy, radius)
+                #print(cx, cy, radius)
                 x.append(cx)
                 y.append(cy)
                 radii.append(radius)
@@ -47,11 +49,11 @@ def get_center_of_red_circle():
                 break
             
             if ret :
-                cv2.imshow('camera', circled_red_copy)
+                cv2.imshow('camera', unnoise_red)
                 if cv2.waitKey(1) != -1:
                     break
             else :
-                print('ERROR : no frmae')
+                print('ERROR : no frame')
                 break
 
     else :
@@ -74,7 +76,7 @@ def get_pos():
 
         #test whethe function get wrong circle or not
         for i in range(REPEAT_NUM):
-            if aver_x - result_x[i] < 5 and aver_y - result_y[i] < 5 :
+            if aver_x - result_x[i] < 5 and aver_y - result_y[i] < 5  and aver_radii - result_radii[i] < 2:
                 success_idx += 1
             else :
                 print('we should repeat again')
@@ -82,37 +84,36 @@ def get_pos():
         if success_idx == REPEAT_NUM:
             break
 
-    
-    print('END : ' ,aver_x, aver_y)
 
     dx, dy = scale_adjust(aver_x, aver_y, aver_radii)
-
-    print(dx, dy)
 
     int_dx = int(dx)
     int_dy = int(dy)
 
+    print('result :', int_dx, int_dy)
+
     return int_dx, int_dy
 
 def get_scale_coef(measured_radii):
-    actual_radii = 10 #reference, mm, it should be changed for real red dot sticker
+    actual_radii = 2.5 #reference, mm, it should be changed for real red dot sticker
     scale_coef = actual_radii / measured_radii
 
     return scale_coef
 
 
 def scale_adjust(aver_x, aver_y, aver_radii):
-    center_offset_x = 650
-    center_offset_y = 450
-
-    centered_x = aver_x - center_offset_x #center change
-    centered_y = aver_y - center_offset_y
+    center_offset_x = -99
+    center_offset_y = -34
 
     scale_coefficient = get_scale_coef(aver_radii)
 
-    scaled_x = scale_coefficient * centered_x  #scale adjustment
-    scaled_y = scale_coefficient * centered_y
+    scaled_x = scale_coefficient * aver_x  #scale adjustment
+    scaled_y = scale_coefficient * aver_y
 
-    return scaled_x, scaled_y
+    centered_x = scaled_x + center_offset_x #center change
+    centered_y = scaled_y + center_offset_y
+
+
+    return -centered_x, centered_y
 
 get_pos()
