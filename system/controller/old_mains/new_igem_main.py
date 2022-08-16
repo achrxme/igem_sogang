@@ -24,21 +24,28 @@ def main():
     rb.motionparam(m_basic)
 
     pos_centri = data.get_position("pos6", 0)
-    pos_pipet_thin_origin = data.get_position("pos6", 1)
-    pos_pipet_thin = pos_pipet_thin_origin.offset(dx = 120)
+
+    pos_pipet_thin = data.get_position("pos6", 1)
+    pos_pipet_thin_for_ver = pos_pipet_thin.offset(dx = 120)
 
     pos_tip_remove= data.get_position("pos6", 2)
-    pos_plate_sol_origin = data.get_position("pos6", 3)
-    pos_plate_sol =  pos_plate_sol_origin.offset(dy = -100)
+
+    pos_plate_sol = data.get_position("pos6", 3)
+    pos_plate_sol_for_ver =  pos_plate_sol.offset(dy = -100)
 
     pos_pipet_thick = data.get_position("pos6", 4)
+
     pos_micro = data.get_position("pos6", 5)
+    pos_micro_for_ver = pos_micro.offset(dx = -150)
+
     pos_incub = data.get_position("pos6", 6)
+    pos_incub_for_ver = pos_incub.offset(dy = 200)
+
 
     off_data = {'there':[0, 0, 0], 'pipet_thin_handle':[-92.76, -12.26, -57.6], 'pipet_thick_handle':[90, 20, -40], 'pipet_thin_tip':[-22.7, -280.11, -24.78], 'pipet_thick_tip':[22, -280, -20], 'del_tip':[-50, -50, 100],
-                'above_plate_1' : [200, 70, -50], 'above_plate_2' : [230, 100, -50], 'above_plate_3' : [260, 100, -50], 'above_PBS' : [0, 0, 0], 'above_conical' : [0, 0, 0], 'above_trypsin' : [0, 0, 0], 'above_conical' : [0, 0, 0],
+                'above_plate_1' : [200, 70, -50], 'above_plate_2' : [230, 100, -50], 'above_plate_3' : [260, 100, -50], 'above_PBS' : [0, 0, 0], 'above_medium' : [0, 0, 0], 'above_trypsin' : [0, 0, 0], 'above_conical' : [0, 0, 0],
                 'grip_plate_1' : [0, 0, 0], 'grip_plate_2' : [0, 0, 0], 'grip_plate_3' : [0, 0, 0],
-                'incub_handle': [0, 0, 0]}
+                'incub_handle': [0, 0, 0], 'incub_closed':[0, 0, 0]}
 
     posture = {'incub_ver':[-180, 90, -120], 'micro_ver' : [-56, 90, -56], 'micro_hor':[90, 0, 90], 'plate_sol_ver':[-90, 90, 180], 'plate_sol_hor':[180, 0, 90],
                 'tip_remove_ver':[-74, 90, 146], 'pipet_thin_ver':[-18, 90, 162], 'pipet_thin_hor':[-85, 0 , 90], 'front_top':[180, 0, 180], 'back_top':[0,0,180]}
@@ -381,29 +388,44 @@ def main():
         rb.move(pos_plate_sol)
         rb.move(pos_pipet_thin)
 
-    pos_incub_ver = posture_change(pos_incub,'incub_ver', 0)
-    pos_micro_ver = posture_change(pos_micro, 'micro_ver', 0)
+    pos_incub_ver = posture_change(pos_incub_for_ver,'incub_ver', 0)
+    pos_micro_ver = posture_change(pos_micro_for_ver, 'micro_ver', 0)
     pos_micro_hor = posture_change(pos_micro, 'micro_hor', 0)
-    pos_pipet_thick_ver = posture_change(pos_pipet_thick, 'micro_ver', 0)
-    pos_plate_sol_ver = posture_change(pos_plate_sol, 'plate_sol_ver', 0)
-    pos_plate_sol_hor = posture_change(pos_plate_sol, 'plate_sol_hor', 0)
+    pos_pipet_thick_ver = posture_change(pos_pipet_thick, 'plate_sol_ver', 0)
+    pos_plate_sol_ver = posture_change(pos_plate_sol_for_ver, 'plate_sol_ver', 0)
+    pos_plate_sol_hor = posture_change(pos_plate_sol_for_ver, 'plate_sol_hor', 0)
     pos_tip_remove_ver = posture_change(pos_tip_remove, 'tip_remove_ver', 0)
-    pos_pipet_thin_ver = posture_change(pos_pipet_thin, 'pipet_thin_ver', 0)
-    pos_pipet_thin_hor = posture_change(pos_pipet_thin, 'pipet_thin_hor', 0)
+    pos_pipet_thin_ver = posture_change(pos_pipet_thin_for_ver, 'pipet_thin_ver', 0)
+    pos_pipet_thin_hor = posture_change(pos_pipet_thin_for_ver, 'pipet_thin_hor', 0)
 
     pos_test_incub = posture_change(pos_incub, 'front_top',0)
     pos_test_micro = posture_change(pos_micro, 'front_top',0)
     pos_test_pipet_thick = posture_change(pos_pipet_thick, 'front_top',0)
-    pos_test_plate_sol = posture_change(pos_pipet_thin, 'front_top',0)
+    pos_test_plate_sol = posture_change(pos_plate_sol, 'front_top',0)
     pos_test_tip_remove = posture_change(pos_tip_remove, 'front_top',0)
     pos_test_pipet_thin = posture_change(pos_pipet_thin, 'front_top',0)
     pos_test_centri = posture_change(pos_centri, 'front_top',0)
 
-    grip('grip', pos_pipet_thin_hor, 'del_tip', 1, 1, 0)
+    pos_incub_back_top = posture_change(pos_incub, 'front_top', 0)
+    pos_pipet_thick_ver_above =  pos_pipet_thick_ver.offset(dz=250)
+    pos_plate_sol_ver_above = pos_plate_sol_ver.offset(dz = 120)
+
+    # dout(16, grip_code['basic_grip'])
+    # rb.sleep(2)
     
+    # if din(0) == grip_test_code['success']:
+    #     print('suc')
 
-
+    # dout(16, grip_code['basic_release'])
+    # rb.sleep(2)
+    rb.home()
+    #posture_change(pos_incub_for_ver,'incub_ver', 1)
+    
+    client.server_order()
+    
     rb.close()
+
+    
 
 if __name__ == '__main__':
         main()

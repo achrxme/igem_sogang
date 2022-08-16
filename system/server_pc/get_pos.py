@@ -116,4 +116,3 @@ def scale_adjust(aver_x, aver_y, aver_radii):
 
     return -centered_x, centered_y
 
-get_pos()

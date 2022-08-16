@@ -8,9 +8,9 @@ import cv2
 import sys
 import numpy as np
 
-ACTUAL_MARKER_LENGTH = 53 #mm of actual length of marker
-CENTER_OFFSET_X = 10
-CENTER_OFFSET_Y = 22
+ACTUAL_MARKER_LENGTH = 68 #mm of actual length of marker
+CENTER_OFFSET_X = -539
+CENTER_OFFSET_Y = -420
 
 def get_world_pos():
 	# construct the argument parser and parse the arguments
@@ -62,13 +62,13 @@ def get_world_pos():
 	time.sleep(2.0)
 
 	x=[]
-	for i in range(8):
+	for i in range(5000):
 		line=[]
 		line.append(0)
 		x.append(line)
 
 	y=[]
-	for i in range(8):
+	for i in range(5000):
 		line = []
 		line.append(0)
 		y.append(line)
@@ -117,20 +117,22 @@ def get_world_pos():
 				cv2.putText(frame, str(markerID),
 								(topLeft[0], topLeft[1] - 15),
 								cv2.FONT_HERSHEY_SIMPLEX,
-								0.5, (0, 255, 0), 2)
+								5, (0, 255, 0), 2)
 
 				#print('id' ,markerID, topRight)
 
-				x[markerID-1].append(topRight[0])
-				y[markerID-1].append(topRight[1])
+				
+				if len(x[markerID-1]) <= 10:
+					x[markerID-1].append(topRight[0])
+					y[markerID-1].append(topRight[1])
+				#else:
+				#	print('toomuch')
 
 				square_length.append(abs(topRight[0]-topLeft[0]))
 
-			if min(len(x[0]), len(x[1]), len(x[2]), len(x[3]), len(x[4]), len(x[5]),
-				len(x[6]), len(x[7])) > 10 and min(len(y[0]), len(y[1]), len(y[2]), 
-				len(y[3]), len(y[4]), len(y[5]),len(y[6]), len(y[7])) > 10 :
+			if min(len(x[0]), len(x[1]), len(x[2]), len(x[3]), len(x[4]), len(x[5]), len(x[6])) > 3:
 				break
-		
+			
 		# show the output frame
 		cv2.imshow("Frame", frame)
 
@@ -164,12 +166,12 @@ def get_world_pos():
 	#scale adjust & offset to center
 	x_result = [x1, x2, x3, x4 ,x5, x6, x7]
 	for i in range(len(x_result)):
-		x_result[i] = int(x_result[i]*scale_coef - CENTER_OFFSET_X )
+		x_result[i] = int(x_result[i]*scale_coef + CENTER_OFFSET_X )
 
 
 	y_result = [y1, y2, y3, y4, y5, y6, y7]
 	for i in range(len(y_result)):
-		y_result[i] = int(y_result[i]*scale_coef - CENTER_OFFSET_Y)
+		y_result[i] = -int(y_result[i]*scale_coef + CENTER_OFFSET_Y)
 
 
 	#the distnce btw x s should be 82
@@ -181,3 +183,5 @@ def get_world_pos():
 	vs.stop()
 
 	return x_result, y_result
+
+#get_world_pos()
