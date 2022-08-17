@@ -47,24 +47,9 @@ def main():
     pos_pipet_thick = Position(pos_x[1], pos_y[1], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
     pos_solution = Position(pos_x[2], pos_y[2], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
     pos_plate = Position(pos_x[3], pos_y[3], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
-    pos_tip_remove = Position(pos_x[4], pos_y[4], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
-    pos_pipet_thin = Position(pos_x[5], pos_y[5], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
-    pos_centri = Position(pos_x[6], pos_y[6], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
-
-    rb.move(pos_incub)
-    rb.home()
-    rb.move(pos_pipet_thick)
-    rb.home()
-    rb.move(pos_solution)
-    rb.home()
-    rb.move(pos_plate)
-    rb.home()
-    rb.move(pos_tip_remove)
-    rb.home()
-    rb.move(pos_pipet_thin)
-    rb.home()
-    rb.move(pos_centri)
-    rb.home()
+    pos_tip_remove = Position(pos_x[4], pos_y[5], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
+    pos_pipet_thin = Position(pos_x[5], pos_y[6], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
+    pos_centri = Position(pos_x[6], pos_y[7], test_height, posture['front_top'][0], posture['front_top'][1], posture['front_top'][2])
 
     def posture_change(pos_origin, new_posture_name, move_or_not) :
         dumm_posture = pos_origin.copy()
@@ -431,6 +416,8 @@ def main():
         rb.move(pos_plate_sol)
         rb.move(pos_pipet_thin)
 
+    
+    rb.home()
     
 
     rb.close()

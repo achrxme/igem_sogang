@@ -3,6 +3,8 @@ import re
 
 def extract_dx_dy(rcv_str_dx_dy):
 
+    print('str : ', rcv_str_dx_dy)
+
     idx_x = rcv_str_dx_dy.find('x')
     idx_y = rcv_str_dx_dy.find('y')
     idx_end = rcv_str_dx_dy.find('q')
@@ -13,11 +15,6 @@ def extract_dx_dy(rcv_str_dx_dy):
     str_x = rcv_str_dx_dy[idx_data_x:idx_data_y-1]
     str_y = rcv_str_dx_dy[idx_data_y:idx_end]
 
-    #str_x=str_x.remove('')
-    #str_y=str_y.remove('')
-
-    print(str_x)
-
     int_x = int(str_x)
     int_y = int(str_y)
 
@@ -26,13 +23,11 @@ def extract_dx_dy(rcv_str_dx_dy):
 def divide_string(rcv_str):
 
     idx = [0, 0, 0, 0, 0, 0, 0]
-    i=0
 
     for m in re.finditer('w', rcv_str):
-        idx[i] = m.start()
-        i += 1
+        idx[m] = m.start()
     
-    str1 = rcv_str[0:idx[0]]
+    str1 = rcv_str[0:idx[0]-1]
     str2 = rcv_str[idx[0]+1:idx[1]]
     str3 = rcv_str[idx[1]+1:idx[2]]
     str4 = rcv_str[idx[2]+1:idx[3]]
@@ -40,7 +35,8 @@ def divide_string(rcv_str):
     str6 = rcv_str[idx[4]+1:idx[5]]
     str7 = rcv_str[idx[5]+1:idx[6]]
 
-    print('strings', str1, str2, str3)
+    print(str1, str2, str3, str4, str5, str6, str7)
+
 
     return str1, str2, str3, str4, str5, str6, str7
 
@@ -57,40 +53,16 @@ def order_classify(order):
     #send
     print("[client] : send msg")
     client_socket.send(send_data)
+    
 
-    if order == 'grip_test':
-        #receive
-        rcv_data = client_socket.recv(64)
-        print("[client] : recv suc/fail")
-        rcv_msg = rcv_data.decode()
-        client_socket.close()
-
-        msg = rcv_msg
-        print(msg)
-        return msg    #return str
-
-    elif order == 'get_pos':
-        #receive
+    if order == 'get_world_pos' :    
         rcv_data = client_socket.recv(64)
         print("[client] : recv from server")
         rcv_msg = rcv_data.decode()
-
-        client_socket.close()
-
-        rcv_dx, rcv_dy = extract_dx_dy(rcv_msg)
-        return rcv_dx, rcv_dy  #return int, int
-
-    elif order == 'get_world_pos' : 
-
-        rcv_data = client_socket.recv(1024)
-
-        print("[client] : recv from server")
-        rcv_msg = rcv_data.decode()
-
         client_socket.close()
 
         rcv_msg1, rcv_msg2, rcv_msg3, rcv_msg4, rcv_msg5, rcv_msg6, rcv_msg7= divide_string(rcv_msg)
-         
+        
         rcv_x1, rcv_y1 = extract_dx_dy(rcv_msg1)
         rcv_x2, rcv_y2 = extract_dx_dy(rcv_msg2)
         rcv_x3, rcv_y3 = extract_dx_dy(rcv_msg3)
@@ -117,7 +89,8 @@ def order_classify(order):
         return_y.append(rcv_y6)
         return_y.append(rcv_y7)
 
-        return return_x, return_y
+        return return_x, return_x
+
 
     else :
         print('unexpected order')

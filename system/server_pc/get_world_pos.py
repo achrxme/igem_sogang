@@ -164,7 +164,7 @@ def get_world_pos():
 	scale_coef = actual_sq_length / mean_sq_length
 
 	#scale adjust & offset to center
-	x_result = [x1, x2, x3, x4 ,x5, x6, x7]
+	x_result = [x1, x2, x3, x4, x5, x6, x7]
 	for i in range(len(x_result)):
 		x_result[i] = int(x_result[i]*scale_coef + CENTER_OFFSET_X )
 
