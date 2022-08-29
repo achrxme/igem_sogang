@@ -50,6 +50,7 @@ def get_center_of_red_circle():
             
             if ret :
                 cv2.imshow('camera', unnoise_red)
+                # cv2.imshow('camera', frame)
                 if cv2.waitKey(1) != -1:
                     break
             else :
@@ -116,3 +117,4 @@ def scale_adjust(aver_x, aver_y, aver_radii):
 
     return -centered_x, centered_y
 
+# get_center_of_red_circle()

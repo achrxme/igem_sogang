@@ -13,11 +13,6 @@ def extract_dx_dy(rcv_str_dx_dy):
     str_x = rcv_str_dx_dy[idx_data_x:idx_data_y-1]
     str_y = rcv_str_dx_dy[idx_data_y:idx_end]
 
-    #str_x=str_x.remove('')
-    #str_y=str_y.remove('')
-
-    print(str_x)
-
     int_x = int(str_x)
     int_y = int(str_y)
 
@@ -40,10 +35,30 @@ def divide_string(rcv_str):
     str6 = rcv_str[idx[4]+1:idx[5]]
     str7 = rcv_str[idx[5]+1:idx[6]]
 
-    print('strings', str1, str2, str3)
-
     return str1, str2, str3, str4, str5, str6, str7
 
+def extract_idx_x_y(rcv_str_idx_x_y):
+
+    idx_idx = 0
+    idx_x = rcv_str_idx_x_y.find('x')
+    idx_y = rcv_str_idx_x_y.find('y')
+    idx_end = rcv_str_idx_x_y.find('q')
+
+    idx_data_x = idx_x+1
+    idx_data_y = idx_y+1
+
+    idx = rcv_str_idx_x_y[idx_idx:idx_data_x-1]
+    off_x = rcv_str_idx_x_y[idx_data_x:idx_data_y-1]
+    off_y = rcv_str_idx_x_y[idx_data_y:idx_end]
+
+    int_idx = int(idx)
+    int_off_x = int(off_x)
+    int_off_y = int(off_y)
+
+
+    #print(idx, off_x, off_y)
+
+    return int_idx, int_off_x, int_off_y
 
 def order_classify(order):
     HOST = '192.168.0.14'
@@ -66,7 +81,7 @@ def order_classify(order):
         client_socket.close()
 
         msg = rcv_msg
-        print(msg)
+
         return msg    #return str
 
     elif order == 'get_pos':
@@ -118,6 +133,21 @@ def order_classify(order):
         return_y.append(rcv_y7)
 
         return return_x, return_y
+
+    elif order == 'adjust_world_pos':
+        rcv_data = client_socket.recv(1024)
+
+        print("[client] : recv from server")
+        rcv_msg = rcv_data.decode()
+
+        
+
+        client_socket.close()
+
+        idx, off_x, off_y = extract_idx_x_y(rcv_msg)
+
+        return idx, off_x, off_y
+
 
     else :
         print('unexpected order')

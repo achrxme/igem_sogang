@@ -61,6 +61,21 @@ def binder(client_socket, addr):
           client_socket.send(data)
 
           break
+
+      elif msg == 'adjust_world_pos' :
+
+        idx, off_x, off_y = get_world_pos.adjust_world_pos()
+
+        str_idx = str(idx)
+        str_off_x = str(off_x)
+        str_off_y = str(off_y)
+
+        str_idx_x_y = str_idx + 'x' + str_off_x + 'y' + str_off_y + 'q'
+        
+        data = str_idx_x_y.encode()
+        client_socket.send(data)
+
+        break
       
       elif msg == "GUI_home":
         data = msg.encode()
