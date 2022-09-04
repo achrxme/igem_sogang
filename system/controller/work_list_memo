@@ -1,38 +1,93 @@
+    rb.home()
+
     adjust_world(pos_incub_marker)
     adjust_world(pos_pipet_thick_marker)
     adjust_world(pos_solution_marker)
     adjust_world(pos_plate_marker)
     adjust_world(pos_pipet_thin_marker)
+    adjust_world(pos_tip_remove_marker)
 
-    
     pos_incub_base = pos_incub_marker.offset(dx= -100, dy = +100, dz = -200)
     pos_pipet_thick_base = pos_pipet_thick_marker.offset(dz = -200)
     pos_solution_base = pos_solution_marker.offset(dz = -200)
     pos_plate_base = pos_plate_marker.offset(dz = -200)
-    pos_tip_remove_base =pos_tip_remove_marker.offset(dz = -200)
+    pos_suction_base =pos_suction_marker.offset(dz = -200)
     pos_pipet_thin_base = pos_pipet_thin_marker.offset(dx = 100, dz = -200)
-    pos_centri_base = pos_centri_marker.offset(dz = -200)
+    pos_tip_remove_base = pos_tip_remove_marker.offset(dx = 100, dz = -150)
 
     pos_plate_higher = pos_plate_marker.offset(dz = -100)
     pos_solution_higher = pos_solution_marker.offset(dy = -100 ,dz = -100)
+    
+    rb.home()
 
     #incub open
     incubator_motion('open', 190)
-
-    #get the plate from incub
     rb.move(pos_pipet_thick_base)
     rb.home()
+
+    #get the plate from incub
     pos_incub_base_ver = posture_change(pos_incub_base, 'incub_ver', 1)
     grip('grip', pos_incub_base_ver, 'incub_plate_2', 'incub', 0, 0)
     rb.line(pos_incub_base_ver)
+
+    #release the plate
     pos_plate_ver = posture_change(pos_plate_base, 'plate_ver', 1)
     grip('half_release', pos_plate_ver, 'grip_plate_3', '+y', 1, 0)
+
+    #incub close
+    incubator_motion('close', 190)
 
     #open the plate cap
     rb.home()
     pos_plate_ver = posture_change(pos_plate_base, 'plate_ver', 1)
     plate_open('open', 'plate_3_cap')
 
+    #pipet motion 3ml
     rb.home()
-    pipette_motion(pos_solution_higher, 'above_medium', pos_plate_higher, 'above_plate_3', 'thin', 1, 1, 1)
+    pipette_motion(pos_solution_higher, 'above_medium', pos_plate_higher, 'above_plate_3', 'thin', 1, 1, 0)
+    pipette_motion(pos_solution_higher, 'above_medium', pos_plate_higher, 'above_plate_3', 'thin', 0, 1, 0)
+    pipette_motion(pos_solution_higher, 'above_medium', pos_plate_higher, 'above_plate_3', 'thin', 0, 1, 1)
+
+    #pipet motion 1ml
     pipette_motion(pos_solution_higher, 'above_conical', pos_plate_higher, 'above_plate_3', 'thin', 1, 1, 1)
+
+    #close the plate cap
+    rb.home()
+    pos_plate_ver = posture_change(pos_plate_base.offset(dz = 100), 'plate_ver', 1)
+    plate_open('close', 'plate_3_cap')
+
+    #grip the plate
+    rb.home()
+    pos_plate_ver = posture_change(pos_plate_base, 'plate_ver', 1)
+    dout(16, grip_code['half_release'])
+    grip('grip', pos_plate_ver, 'grip_plate_3', '+y', 1, 0)
+
+    #mix
+    mix(pos_plate_ver, 2, 100)
+
+    #release the plate
+    pos_plate_ver = posture_change(pos_plate_base, 'plate_ver', 1)
+    grip('half_release', pos_plate_ver, 'grip_plate_3', '+y', 1, 0)
+
+    #incub open
+    rb.home()
+    incubator_motion('open', 190)
+    rb.move(pos_pipet_thick_base)
+    rb.home()
+
+    #grip the plate
+    rb.home()
+    pos_plate_ver = posture_change(pos_plate_base, 'plate_ver', 1)
+    dout(16, grip_code['half_release'])
+    grip('grip', pos_plate_ver, 'grip_plate_3', '+y', 1, 0)
+
+    #release the plate in incub
+    pos_incub_base_ver = posture_change(pos_incub_base, 'incub_ver', 1)
+    grip('release', pos_incub_base_ver, 'incub_plate_2', 'incub', 1, 0)
+    rb.line(pos_incub_base_ver)
+
+    #close the incub
+    rb.home()
+    incubator_motion('close', 190)
+
+    rb.home()

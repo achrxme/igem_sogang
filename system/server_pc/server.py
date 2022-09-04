@@ -1,6 +1,4 @@
 import socket, threading
-
-#import keras_model_def
 import get_pos
 import get_world_pos
 
